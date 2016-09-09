@@ -15,8 +15,11 @@ import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mBlogList;
 
-    private DatabaseReference mDatabaseReference;
+    private DatabaseReference mDatabaseBlog;
+    private DatabaseReference mDatabaseUsers;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -50,8 +54,11 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Blog");
-        mDatabaseReference.keepSynced(true);
+        mDatabaseBlog = FirebaseDatabase.getInstance().getReference().child("Blog");
+        mDatabaseUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+
+        mDatabaseUsers.keepSynced(true);
+        mDatabaseBlog.keepSynced(true);
 
         mBlogList = (RecyclerView) findViewById(R.id.blog_list);
 
@@ -68,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        checkUser();
+
         mAuth.addAuthStateListener(mAuthStateListener);
 
         FirebaseRecyclerAdapter<Blog, BlogViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Blog, BlogViewHolder>(
@@ -75,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 Blog.class,
                 R.layout.blog_row,
                 BlogViewHolder.class,
-                mDatabaseReference
+                mDatabaseBlog
         ) {
             @Override
             protected void populateViewHolder(BlogViewHolder viewHolder, Blog model, int position) {
@@ -88,6 +97,34 @@ public class MainActivity extends AppCompatActivity {
         };
 
         mBlogList.setAdapter(firebaseRecyclerAdapter);
+    }
+
+    private void checkUser() {
+
+        final String user_id = mAuth.getCurrentUser().getUid();
+
+        mDatabaseUsers.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (!dataSnapshot.hasChild(user_id)) {
+
+                    Intent setupIntent = new Intent(MainActivity.this, SetupActivity.class);
+                    setupIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(setupIntent);
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+
+            }
+        });
+
     }
 
     public static class BlogViewHolder extends RecyclerView.ViewHolder {

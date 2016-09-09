@@ -1,5 +1,6 @@
 package com.example.android.firebase;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -28,9 +29,11 @@ public class LoginActivity extends AppCompatActivity {
     private Button mLoginButton;
     private Button mNewAccountButton;
 
+    private ProgressDialog mDialog;
+
     private FirebaseAuth mAuth;
 
-    private DatabaseReference mReference;
+    private DatabaseReference mDatabaseUsers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +42,10 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        mReference = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabaseUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabaseUsers.keepSynced(true);
+
+        mDialog = new ProgressDialog(this);
 
         mLoginEmailField = (EditText) findViewById(R.id.login_email_field);
         mLoginPasswordField = (EditText) findViewById(R.id.login_password_field);
@@ -74,16 +80,22 @@ public class LoginActivity extends AppCompatActivity {
 
         if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
 
+            mDialog.setMessage("Checking Login ...");
+            mDialog.show();
+
             mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
 
                     if (task.isSuccessful()) {
 
+                        mDialog.dismiss();
+
                         checkUser();
 
-
                     } else {
+
+                        mDialog.dismiss();
 
                         Toast.makeText(LoginActivity.this, "Error Login", Toast.LENGTH_LONG).show();
                     }
@@ -100,7 +112,8 @@ public class LoginActivity extends AppCompatActivity {
 
         final String user_id = mAuth.getCurrentUser().getUid();
 
-        mReference.addValueEventListener(new ValueEventListener() {
+        mDatabaseUsers.addValueEventListener(new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -112,7 +125,9 @@ public class LoginActivity extends AppCompatActivity {
 
                 } else {
 
-                    Toast.makeText(LoginActivity.this, "Setup your account.", Toast.LENGTH_LONG).show();
+                    Intent mainIntent = new Intent(LoginActivity.this, SetupActivity.class);
+                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(mainIntent);
 
                 }
 

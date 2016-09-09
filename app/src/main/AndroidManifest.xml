@@ -20,6 +20,9 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+        <activity
             android:name=".PostActivity"
             android:label="Post Blog" />
         <activity
@@ -27,7 +30,10 @@
             android:label="Register" />
         <activity
             android:name=".LoginActivity"
-            android:label="Login"></activity>
+            android:label="Login" />
+        <activity
+            android:name=".SetupActivity"
+            android:label="Setup Account"/>
     </application>
 
 </manifest>
