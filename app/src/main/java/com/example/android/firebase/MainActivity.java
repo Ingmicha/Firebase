@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.common.SignInButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         mBlogList.setHasFixedSize(true);
         mBlogList.setLayoutManager(new LinearLayoutManager(this));
+        checkUser();
 
     }
 
@@ -75,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        checkUser();
 
         mAuth.addAuthStateListener(mAuthStateListener);
 
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 viewHolder.setTitle(model.getTitle());
                 viewHolder.setDesc(model.getDesc());
                 viewHolder.setImage(getApplicationContext(), model.getImage());
+                viewHolder.setUserName(model.getUsername());
 
             }
         };
@@ -101,30 +104,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkUser() {
 
-        final String user_id = mAuth.getCurrentUser().getUid();
+        if (mAuth.getCurrentUser() != null) {
 
-        mDatabaseUsers.addValueEventListener(new ValueEventListener() {
+            final String user_id = mAuth.getCurrentUser().getUid();
 
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            mDatabaseUsers.addValueEventListener(new ValueEventListener() {
 
-                if (!dataSnapshot.hasChild(user_id)) {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                    Intent setupIntent = new Intent(MainActivity.this, SetupActivity.class);
-                    setupIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(setupIntent);
+                    if (!dataSnapshot.hasChild(user_id)) {
+
+                        Intent setupIntent = new Intent(MainActivity.this, SetupActivity.class);
+                        setupIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(setupIntent);
+
+                    }
 
                 }
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
 
-            }
-        });
-
+                }
+            });
+        }
     }
 
     public static class BlogViewHolder extends RecyclerView.ViewHolder {
@@ -150,6 +155,13 @@ public class MainActivity extends AppCompatActivity {
 
             ImageView post_image = (ImageView) mView.findViewById(R.id.post_image);
             Picasso.with(ctx).load(image).into(post_image);
+
+        }
+
+        public void setUserName(String userName){
+
+            TextView post_user = (TextView) mView.findViewById(R.id.post_user);
+            post_user.setText(userName);
 
         }
     }
