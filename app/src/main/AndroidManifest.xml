@@ -33,7 +33,8 @@
             android:label="Login" />
         <activity
             android:name=".SetupActivity"
-            android:label="Setup Account"/>
+            android:label="Setup Account" />
+        <activity android:name=".PostSingleActivity"></activity>
     </application>
 
 </manifest>
